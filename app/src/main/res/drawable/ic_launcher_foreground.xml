@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Khối chấm hỏi Mario ? Vàng Kim -->
+    <path
+        android:fillColor="#F0A000"
+        android:pathData="M24,24h60v60h-60z"/>
+    <path
+        android:fillColor="#000000"
+        android:strokeWidth="4"
+        android:strokeColor="#000000"
+        android:pathData="M24,24h60v60h-60z"/>
+
+    <!-- Chữ ? nổi bật trắng tinh trên logo app -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M46,36c0,-4.4 3.6,-8 8,-8s8,3.6 8,8c0,3 -1.8,5.6 -4.4,6.8l-2.6,1.2v6h-6v-8l4.2,-2c1.2,-0.6 1.8,-1.8 1.8,-3c0,-1.7 -1.3,-3 -3,-3s-3,1.3 -3,3h-6zM51,58h6v6h-6z"/>
+</vector>
