@@ -49,9 +49,9 @@ final class GameCoreTests: XCTestCase {
         XCTAssertGreaterThanOrEqual(high, 680)
     }
     func testWalkingIntoPipeStopsOnItsWall() throws {
-        let game = try play(); game.player.origin.x = 600; game.right = true
+        let game = try play(4); game.player.origin.x = 690; game.right = true
         run(game, seconds: 0.8)
-        XCTAssertLessThanOrEqual(game.player.maxX, 720.1)
+        XCTAssertEqual(game.player.maxX, 810, accuracy: 0.1)
         XCTAssertEqual(game.lives, 3)
     }
     func testRiverCostsOneLifeAndReloadsLevel() throws {
