@@ -1,0 +1,77 @@
+name: iOS Native
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['ios/**', 'tools/prepare_ios.py', 'tools/generate_xcode_project.py', 'app/src/main/java/local/vn/suppermario/LevelData.kt', 'app/src/main/java/local/vn/suppermario/ChallengeRules.kt', 'app/src/main/res/drawable/**', '.github/workflows/ios-native.yml']
+permissions:
+  contents: read
+concurrency:
+  group: ios-native-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  build-and-test:
+    runs-on: macos-15
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v7
+      - name: Prepare native assets and check shared level data
+        run: |
+          python3 tools/prepare_ios.py --check
+          python3 tools/prepare_ios.py
+          python3 tools/generate_xcode_project.py
+          git diff --exit-code -- ios/SupperMario.xcodeproj
+          swift ios/GenerateIcon.swift
+          xcodebuild -version
+      - name: Test deterministic Swift game engine
+        run: swift test --package-path ios/GameCore --parallel
+      - name: Select and boot iPhone simulator
+        run: |
+          xcrun simctl list devices available --json > /tmp/ios-devices.json
+          python3 - <<'PY'
+          import json, os
+          devices = json.load(open('/tmp/ios-devices.json'))['devices']
+          device = next(d for runtime, group in devices.items() if 'iOS' in runtime for d in group if d['name'].startswith('iPhone'))
+          with open(os.environ['GITHUB_ENV'], 'a') as out:
+              out.write('SIMULATOR_ID=' + device['udid'] + '\n')
+          print(device['name'], device['udid'])
+          PY
+      - name: Build native iPhone simulator app and UI tests
+        run: |
+          xcrun simctl boot "$SIMULATOR_ID"
+          xcrun simctl bootstatus "$SIMULATOR_ID" -b
+          xcodebuild build-for-testing -project ios/SupperMario.xcodeproj -scheme SupperMario -configuration Debug -destination "platform=iOS Simulator,id=$SIMULATOR_ID" -derivedDataPath ios/DerivedData CODE_SIGNING_ALLOWED=NO
+      - name: Test menu, controls, pause and all five levels on iPhone
+        run: |
+          xcodebuild test-without-building -project ios/SupperMario.xcodeproj -scheme SupperMario -configuration Debug -destination "platform=iOS Simulator,id=$SIMULATOR_ID" -derivedDataPath ios/DerivedData -resultBundlePath ios/UITestResults.xcresult CODE_SIGNING_ALLOWED=NO
+          xcrun simctl launch "$SIMULATOR_ID" vn.local.suppermario
+          xcrun simctl io "$SIMULATOR_ID" screenshot ios/iPhone-native-menu.png
+      - name: Compile arm64 device build without signing
+        run: |
+          xcodebuild build -project ios/SupperMario.xcodeproj -scheme SupperMario -configuration Release -destination 'generic/platform=iOS' -derivedDataPath ios/DeviceBuild CODE_SIGNING_ALLOWED=NO
+          mkdir -p ios/Export/Payload
+          cp -R ios/DeviceBuild/Build/Products/Release-iphoneos/SupperMario.app ios/Export/Payload/
+          cd ios/Export
+          zip -qry SupperMario-unsigned.ipa Payload
+          shasum -a 256 SupperMario-unsigned.ipa > SupperMario-unsigned.ipa.sha256
+      - name: Package simulator app
+        run: ditto -c -k --keepParent ios/DerivedData/Build/Products/Debug-iphonesimulator/SupperMario.app ios/SupperMario-simulator.zip
+      - name: Upload native builds and test evidence
+        uses: actions/upload-artifact@v7
+        with:
+          name: SupperMario-iOS-native
+          path: |
+            ios/Export/SupperMario-unsigned.ipa
+            ios/Export/SupperMario-unsigned.ipa.sha256
+            ios/SupperMario-simulator.zip
+            ios/iPhone-native-menu.png
+          if-no-files-found: error
+          retention-days: 30
+      - name: Upload UI test results and screenshots
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: iOS-test-results
+          path: ios/UITestResults.xcresult
+          if-no-files-found: ignore
+          retention-days: 14

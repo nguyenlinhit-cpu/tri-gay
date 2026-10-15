@@ -1,6 +1,11 @@
 # SupperMario
 
-Game Android Kotlin, hỗ trợ Android 7.0 (API 24) trở lên.
+Game Android Kotlin (Android 7.0 trở lên) và bản iOS native Swift (iOS 15 trở lên).
+
+[Bản iOS native và hướng dẫn build/ký](ios/README.md) ·
+[Build iOS trên GitHub Actions](https://github.com/nguyenlinhit-cpu/tri-gay/actions/workflows/ios-native.yml)
+
+Bản iOS dùng UIKit/Core Graphics; bản arm64 chưa ký cần được ký bằng Apple trước khi cài lên iPhone.
 
 [Tải APK cài thử](https://github.com/nguyenlinhit-cpu/tri-gay/releases/latest)
 
