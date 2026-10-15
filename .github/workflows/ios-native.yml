@@ -41,10 +41,10 @@ jobs:
         run: |
           xcrun simctl boot "$SIMULATOR_ID"
           xcrun simctl bootstatus "$SIMULATOR_ID" -b
-          xcodebuild build-for-testing -project ios/SupperMario.xcodeproj -scheme SupperMario -configuration Debug -destination "platform=iOS Simulator,id=$SIMULATOR_ID" -derivedDataPath ios/DerivedData CODE_SIGNING_ALLOWED=NO
+          xcodebuild build-for-testing -project ios/SupperMario.xcodeproj -scheme SupperMario -configuration Debug -destination "platform=iOS Simulator,id=$SIMULATOR_ID" -derivedDataPath ios/DerivedData ONLY_ACTIVE_ARCH=YES CODE_SIGNING_ALLOWED=NO
       - name: Test menu, controls, pause and all five levels on iPhone
         run: |
-          xcodebuild test-without-building -project ios/SupperMario.xcodeproj -scheme SupperMario -configuration Debug -destination "platform=iOS Simulator,id=$SIMULATOR_ID" -derivedDataPath ios/DerivedData -resultBundlePath ios/UITestResults.xcresult CODE_SIGNING_ALLOWED=NO
+          xcodebuild test-without-building -project ios/SupperMario.xcodeproj -scheme SupperMario -configuration Debug -destination "platform=iOS Simulator,id=$SIMULATOR_ID" -derivedDataPath ios/DerivedData -resultBundlePath ios/UITestResults.xcresult ONLY_ACTIVE_ARCH=YES CODE_SIGNING_ALLOWED=NO
           xcrun simctl launch "$SIMULATOR_ID" vn.local.suppermario
           xcrun simctl io "$SIMULATOR_ID" screenshot ios/iPhone-native-menu.png
       - name: Compile arm64 device build without signing
