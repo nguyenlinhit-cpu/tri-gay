@@ -1,7 +1,5 @@
 package local.vn.suppermario
 
-import android.graphics.Color
-
 data class PipeData(val x: Float, val height: Float, val teleportTargetX: Float? = null)
 data class BlockData(
     val x: Float,
@@ -12,6 +10,7 @@ data class BlockData(
 )
 data class CoinData(val x: Float, val yOffset: Float)
 data class GoombaData(val x: Float, val minX: Float, val maxX: Float, val speed: Float)
+data class BirdData(val x: Float, val minX: Float, val maxX: Float, val height: Float = 350f)
 data class RiverData(val startX: Float, val endX: Float)
 data class PlatformData(
     val x: Float,
@@ -31,218 +30,138 @@ class LevelData(
     val blocks: List<BlockData>,
     val coins: List<CoinData>,
     val goombas: List<GoombaData>,
+    val birds: List<BirdData> = emptyList(),
     val rivers: List<RiverData> = emptyList(),
     val platforms: List<PlatformData> = emptyList(),
     val isBossLevel: Boolean = false,
     val bossX: Float = 0f,
-    val flagpoleX: Float = 5100f
+    val flagpoleX: Float = 5200f,
+    val challenge: String = "",
+    val arenaStartX: Float = 0f
 ) {
     companion object {
         fun getLevels(difficulty: Difficulty): List<LevelData> {
-            val speedMult = when (difficulty) {
-                Difficulty.EASY -> 0.8f
-                Difficulty.MEDIUM -> 1.0f
-                Difficulty.HARD -> 1.4f
-            }
+            val rules = ChallengeRules.forDifficulty(difficulty)
+            fun enemy(x: Float, left: Float, right: Float, speed: Float) =
+                GoombaData(x, left, right, speed * rules.enemySpeed)
+            fun supply(x: Float, type: PowerUpType) =
+                BlockData(x, 175f, BlockType.QUESTION, powerUpType = type)
+            fun weapon(x: Float, type: WeaponType) =
+                BlockData(x, 175f, BlockType.QUESTION, weaponType = type)
+            fun trail(vararg points: Pair<Float, Float>) = points.map { CoinData(it.first, it.second) }
+            fun time(seconds: Int) = (seconds * rules.timeScale).toInt()
 
-            val bH1 = 175f // Độ cao gạch tầng 1 (vừa tầm Mario nhảy húc nhẹ)
-            val bH2 = 325f // Độ cao gạch tầng 2
-
-            // MÀN 1: WORLD 1-1 (Nhập Môn Classic - Bố cục Cân Bằng)
+            // Every level has a safe opening, separated encounters and a clear final stretch.
             val level1 = LevelData(
-                worldName = "WORLD 1-1",
-                skyColor = Color.rgb(110, 180, 255),
-                timeLimit = 400,
-                pipes = listOf(
-                    PipeData(850f, 110f),
-                    PipeData(1400f, 150f),
-                    PipeData(2400f, 180f),
-                    PipeData(4300f, 140f)
-                ),
-                blocks = listOf(
-                    // Cụm gạch nhập môn
-                    BlockData(300f, bH1, BlockType.BRICK),
-                    BlockData(375f, bH1, BlockType.QUESTION, powerUpType = PowerUpType.MUSHROOM),
-                    BlockData(450f, bH1, BlockType.BRICK),
-                    
-                    // Cụm gạch giữa ống nước
-                    BlockData(1100f, bH1, BlockType.QUESTION, powerUpType = PowerUpType.COIN),
-                    
-                    // Dãy gạch treo thưởng
-                    BlockData(1800f, bH1, BlockType.BRICK),
-                    BlockData(1875f, bH1, BlockType.QUESTION, powerUpType = PowerUpType.MUSHROOM),
-                    BlockData(1950f, bH1, BlockType.BRICK),
-                    BlockData(2025f, bH1, BlockType.QUESTION, powerUpType = PowerUpType.STAR),
-                    BlockData(2100f, bH1, BlockType.BRICK),
-
-                    // Cầu gạch cao
-                    BlockData(3600f, bH1, BlockType.QUESTION, powerUpType = PowerUpType.COIN),
-                    BlockData(3675f, bH1, BlockType.QUESTION, powerUpType = PowerUpType.COIN),
-                    BlockData(3750f, bH1, BlockType.QUESTION, powerUpType = PowerUpType.COIN)
-                ),
-                coins = listOf(
-                    CoinData(375f, bH1 + 75f),
-                    CoinData(1100f, bH1 + 75f),
-                    CoinData(1875f, bH1 + 75f),
-                    CoinData(2025f, bH1 + 75f),
-                    CoinData(3600f, bH1 + 75f),
-                    CoinData(3675f, bH1 + 75f),
-                    CoinData(3750f, bH1 + 75f)
-                ),
-                goombas = listOf(
-                    GoombaData(650f, 550f, 800f, 100f * speedMult),
-                    GoombaData(1200f, 1000f, 1350f, 110f * speedMult),
-                    GoombaData(2100f, 1850f, 2350f, 120f * speedMult),
-                    GoombaData(3500f, 3300f, 3700f, 130f * speedMult)
-                )
+                worldName = "WORLD 1-1", skyColor = 0xFF6EB4FF.toInt(), timeLimit = time(230),
+                challenge = "VƯỜN GAI • Canh nhịp ống, né đá rơi",
+                pipes = listOf(PipeData(720f, 120f), PipeData(1280f, 160f),
+                    PipeData(2480f, 140f), PipeData(3040f, 180f), PipeData(4450f, 170f)),
+                blocks = listOf(supply(330f, PowerUpType.MUSHROOM),
+                    BlockData(405f, 175f, BlockType.BRICK), supply(2700f, PowerUpType.COIN),
+                    supply(4110f, PowerUpType.MUSHROOM)),
+                rivers = listOf(RiverData(1770f, 2210f), RiverData(3540f, 4070f)),
+                platforms = listOf(PlatformData(1900f, 110f, 120f, isRock = true),
+                    PlatformData(3650f, 100f, 110f, isRock = true),
+                    PlatformData(3870f, 145f, 110f, isRock = true)),
+                birds = listOf(BirdData(1510f, 1440f, 1740f, 330f),
+                    BirdData(2730f, 2650f, 2980f, 350f), BirdData(3740f, 3560f, 4050f, 370f)),
+                goombas = listOf(enemy(510f, 470f, 690f, 145f), enemy(990f, 900f, 1240f, 155f),
+                    enemy(2300f, 2250f, 2460f, 165f), enemy(3260f, 3200f, 3510f, 175f),
+                    enemy(4750f, 4620f, 5000f, 185f)),
+                coins = trail(760f to 210f, 1320f to 250f, 1935f to 195f,
+                    2520f to 230f, 3080f to 270f, 3680f to 185f, 3900f to 230f, 4490f to 260f)
             )
-
-            // MÀN 2: WORLD 1-2 (Vượt Sông & Cục Đá Nổi)
             val level2 = LevelData(
-                worldName = "WORLD 1-2",
-                skyColor = Color.rgb(90, 160, 230),
-                timeLimit = 360,
-                rivers = listOf(
-                    RiverData(1050f, 1750f),
-                    RiverData(2850f, 3650f)
-                ),
-                platforms = listOf(
-                    PlatformData(1150f, 130f, 120f, isRock = true),
-                    PlatformData(1400f, 170f, 120f, isRock = true),
-                    PlatformData(1620f, 130f, 120f, isRock = true),
-
-                    PlatformData(3000f, 140f, 120f, isRock = true),
-                    PlatformData(3250f, 180f, 120f, isRock = true),
-                    PlatformData(3480f, 130f, 120f, isRock = true)
-                ),
-                pipes = listOf(
-                    PipeData(650f, 140f),
-                    PipeData(2150f, 160f),
-                    PipeData(4150f, 150f)
-                ),
-                blocks = listOf(
-                    BlockData(350f, bH1, BlockType.QUESTION, powerUpType = PowerUpType.MUSHROOM),
-                    BlockData(2350f, bH1, BlockType.QUESTION, powerUpType = PowerUpType.STAR),
-                    BlockData(2425f, bH1, BlockType.BRICK)
-                ),
-                coins = listOf(
-                    CoinData(1150f, 200f),
-                    CoinData(1400f, 240f),
-                    CoinData(1620f, 200f),
-                    CoinData(3000f, 210f),
-                    CoinData(3250f, 250f)
-                ),
-                goombas = listOf(
-                    GoombaData(500f, 400f, 620f, 120f * speedMult),
-                    GoombaData(1950f, 1820f, 2100f, 130f * speedMult),
-                    GoombaData(2550f, 2400f, 2800f, 140f * speedMult),
-                    GoombaData(3950f, 3750f, 4100f, 150f * speedMult)
-                )
+                worldName = "WORLD 1-2", skyColor = 0xFF5AA0D8.toInt(), timeLimit = time(220),
+                challenge = "ĐẢO ĐÁ • Nhảy chính xác qua ba khúc sông",
+                pipes = listOf(PipeData(650f, 150f), PipeData(2290f, 180f), PipeData(4510f, 175f)),
+                blocks = listOf(supply(330f, PowerUpType.MUSHROOM),
+                    supply(2510f, PowerUpType.MUSHROOM), supply(4270f, PowerUpType.COIN)),
+                rivers = listOf(RiverData(980f, 2050f), RiverData(2740f, 3650f), RiverData(3910f, 4400f)),
+                platforms = listOf(PlatformData(1090f, 110f, 110f, isRock = true),
+                    PlatformData(1330f, 160f, 100f, isRock = true),
+                    PlatformData(1570f, 110f, 100f, isRock = true),
+                    PlatformData(1820f, 165f, 105f, isRock = true),
+                    PlatformData(2850f, 120f, 105f, isRock = true),
+                    PlatformData(3090f, 175f, 100f, isRock = true),
+                    PlatformData(3370f, 120f, 100f, isRock = true),
+                    PlatformData(4010f, 105f, 100f, isRock = true),
+                    PlatformData(4210f, 160f, 100f, isRock = true)),
+                birds = listOf(BirdData(1250f, 1080f, 1580f, 380f),
+                    BirdData(1810f, 1650f, 2020f, 395f), BirdData(3100f, 2850f, 3520f, 395f),
+                    BirdData(4700f, 4650f, 5020f, 320f)),
+                goombas = listOf(enemy(480f, 440f, 630f, 170f), enemy(2130f, 2080f, 2270f, 180f),
+                    enemy(2490f, 2420f, 2700f, 190f), enemy(4750f, 4660f, 5040f, 205f)),
+                coins = trail(1120f to 195f, 1360f to 245f, 1600f to 195f, 1850f to 250f,
+                    2880f to 205f, 3120f to 260f, 3400f to 205f, 4040f to 190f, 4240f to 245f)
             )
-
-            // MÀN 3: WORLD 1-3 (Nền Di Chuyển Qua Lại)
             val level3 = LevelData(
-                worldName = "WORLD 1-3",
-                skyColor = Color.rgb(100, 160, 240),
-                timeLimit = 330,
-                rivers = listOf(
-                    RiverData(1350f, 2050f),
-                    RiverData(3150f, 3850f)
-                ),
-                platforms = listOf(
-                    PlatformData(1400f, 180f, 150f, minX = 1380f, maxX = 2000f, speed = 140f),
-                    PlatformData(3200f, 200f, 150f, minX = 3180f, maxX = 3800f, speed = 160f)
-                ),
-                pipes = listOf(
-                    PipeData(750f, 150f),
-                    PipeData(2450f, 170f),
-                    PipeData(4250f, 180f)
-                ),
-                blocks = listOf(
-                    BlockData(350f, bH1, BlockType.QUESTION, powerUpType = PowerUpType.MUSHROOM),
-                    BlockData(950f, bH1, BlockType.BRICK),
-                    BlockData(1025f, bH1, BlockType.QUESTION, powerUpType = PowerUpType.STAR),
-                    BlockData(2650f, bH1, BlockType.QUESTION, powerUpType = PowerUpType.MUSHROOM)
-                ),
-                coins = listOf(
-                    CoinData(1025f, bH1 + 75f),
-                    CoinData(2650f, bH1 + 75f)
-                ),
-                goombas = listOf(
-                    GoombaData(550f, 400f, 720f, 140f * speedMult),
-                    GoombaData(1050f, 900f, 1250f, 150f * speedMult),
-                    GoombaData(2250f, 2100f, 2400f, 160f * speedMult),
-                    GoombaData(4050f, 3900f, 4200f, 170f * speedMult)
-                )
+                worldName = "WORLD 1-3", skyColor = 0xFF547CB6.toInt(), timeLimit = time(215),
+                challenge = "CẦU CHUYỂN ĐỘNG • Chờ nền tới rồi nhảy",
+                pipes = listOf(PipeData(690f, 170f), PipeData(2440f, 180f), PipeData(4620f, 185f)),
+                blocks = listOf(supply(330f, PowerUpType.MUSHROOM),
+                    supply(2690f, PowerUpType.MUSHROOM), BlockData(2765f, 175f, BlockType.BRICK)),
+                rivers = listOf(RiverData(1050f, 2240f), RiverData(3020f, 4430f)),
+                platforms = listOf(PlatformData(1150f, 105f, 125f, isRock = true),
+                    PlatformData(1450f, 155f, 115f, 1360f, 1720f, 155f * rules.platformSpeed),
+                    PlatformData(1850f, 110f, 115f, isRock = true),
+                    PlatformData(3120f, 110f, 120f, isRock = true),
+                    PlatformData(3400f, 170f, 105f, 3320f, 3680f, 175f * rules.platformSpeed),
+                    PlatformData(3820f, 125f, 110f, isRock = true),
+                    PlatformData(4100f, 165f, 105f, 4030f, 4380f, 190f * rules.platformSpeed)),
+                birds = listOf(BirdData(1560f, 1390f, 1840f, 410f),
+                    BirdData(2860f, 2800f, 3000f, 350f), BirdData(3530f, 3350f, 3800f, 420f),
+                    BirdData(4200f, 4050f, 4400f, 420f)),
+                goombas = listOf(enemy(500f, 440f, 670f, 185f), enemy(850f, 820f, 1020f, 195f),
+                    enemy(2310f, 2260f, 2420f, 200f), enemy(2790f, 2660f, 2990f, 215f),
+                    enemy(4880f, 4780f, 5080f, 225f)),
+                coins = trail(1180f to 190f, 1530f to 250f, 1880f to 195f,
+                    3150f to 195f, 3480f to 265f, 3850f to 210f, 4190f to 260f)
             )
-
-            // MÀN 4: WORLD 1-4 (Ống Nước Dịch Chuyển Teleport)
             val level4 = LevelData(
-                worldName = "WORLD 1-4",
-                skyColor = Color.rgb(40, 20, 50),
-                timeLimit = 320,
-                rivers = listOf(
-                    RiverData(1150f, 2150f),
-                    RiverData(3150f, 3950f)
-                ),
-                pipes = listOf(
-                    PipeData(550f, 160f),
-                    PipeData(950f, 180f, teleportTargetX = 2250f),
-                    PipeData(2250f, 180f),
-                    PipeData(2950f, 180f, teleportTargetX = 4050f),
-                    PipeData(4050f, 180f)
-                ),
-                blocks = listOf(
-                    BlockData(350f, bH1, BlockType.QUESTION, powerUpType = PowerUpType.MUSHROOM),
-                    BlockData(2450f, bH1, BlockType.QUESTION, powerUpType = PowerUpType.STAR),
-                    BlockData(2525f, bH1, BlockType.BRICK)
-                ),
-                coins = listOf(
-                    CoinData(350f, bH1 + 75f),
-                    CoinData(2450f, bH1 + 75f)
-                ),
-                goombas = listOf(
-                    GoombaData(750f, 630f, 900f, 160f * speedMult),
-                    GoombaData(2550f, 2350f, 2850f, 170f * speedMult),
-                    GoombaData(4250f, 4100f, 4550f, 180f * speedMult)
-                )
+                worldName = "WORLD 1-4", skyColor = 0xFF292443.toInt(), timeLimit = time(200),
+                challenge = "PHÁO ĐÀI ỐNG • Đáp lên ống có mũi tên để dịch chuyển",
+                pipes = listOf(PipeData(680f, 180f), PipeData(1120f, 170f, 2390f),
+                    PipeData(2390f, 170f), PipeData(3020f, 185f), PipeData(3530f, 180f, 4590f),
+                    PipeData(4590f, 180f)),
+                blocks = listOf(supply(330f, PowerUpType.MUSHROOM),
+                    weapon(2720f, WeaponType.ROCK_THROW), supply(4830f, PowerUpType.MUSHROOM)),
+                rivers = listOf(RiverData(1320f, 2270f), RiverData(3740f, 4470f)),
+                platforms = listOf(PlatformData(2830f, 120f, 100f, isRock = true),
+                    PlatformData(3260f, 135f, 105f, isRock = true)),
+                birds = listOf(BirdData(920f, 860f, 1080f, 390f),
+                    BirdData(2820f, 2660f, 2980f, 405f), BirdData(3340f, 3240f, 3490f, 410f),
+                    BirdData(4950f, 4840f, 5090f, 370f)),
+                goombas = listOf(enemy(480f, 430f, 650f, 205f), enemy(900f, 830f, 1090f, 215f),
+                    enemy(2660f, 2620f, 2980f, 225f), enemy(3290f, 3200f, 3500f, 235f),
+                    enemy(4930f, 4830f, 5100f, 245f)),
+                coins = trail(720f to 270f, 1160f to 260f, 2430f to 260f,
+                    2860f to 205f, 3060f to 275f, 3290f to 220f, 3570f to 270f, 4630f to 270f)
             )
-
-            // MÀN 5: WORLD 1-5 (TRƯỜNG ĐẤU BOSS RÙA HỒNG & SÓNG KIẾM)
             val level5 = LevelData(
-                worldName = "WORLD 1-5 (BOSS BATTLE)",
-                skyColor = Color.rgb(60, 15, 30),
-                timeLimit = 300,
-                isBossLevel = true,
-                bossX = 3600f,
-                flagpoleX = 4000f,
-                pipes = listOf(
-                    PipeData(950f, 160f)
-                ),
-                blocks = listOf(
-                    // 3 Ô Chọn Vũ Khí
-                    BlockData(250f, bH1, BlockType.QUESTION, weaponType = WeaponType.GUN),
-                    BlockData(375f, bH1, BlockType.QUESTION, weaponType = WeaponType.ROCK_THROW),
-                    BlockData(500f, bH1, BlockType.QUESTION, weaponType = WeaponType.SWORD),
-
-                    // Tường gạch chỗ nấp (Cao 2 khối vừa tầm nhảy qua: 150px)
-                    BlockData(1700f, 75f, BlockType.BRICK),
-                    BlockData(1700f, 150f, BlockType.BRICK),
-
-                    BlockData(2700f, 75f, BlockType.BRICK),
-                    BlockData(2700f, 150f, BlockType.BRICK)
-                ),
-                coins = listOf(
-                    CoinData(250f, bH1 + 75f),
-                    CoinData(375f, bH1 + 75f),
-                    CoinData(500f, bH1 + 75f)
-                ),
-                goombas = listOf(
-                    GoombaData(1350f, 1050f, 1650f, 170f * speedMult),
-                    GoombaData(2250f, 1950f, 2550f, 180f * speedMult)
-                )
+                worldName = "WORLD 1-5", skyColor = 0xFF461E36.toInt(), timeLimit = time(240),
+                challenge = "THÀNH TRÌ CUỐI • Hạ boss để mở cổng đích",
+                isBossLevel = true, bossX = 4250f, arenaStartX = 3350f,
+                pipes = listOf(PipeData(810f, 170f), PipeData(2540f, 190f)),
+                blocks = listOf(weapon(250f, WeaponType.GUN), weapon(410f, WeaponType.ROCK_THROW),
+                    weapon(570f, WeaponType.SWORD), supply(1050f, PowerUpType.MUSHROOM),
+                    supply(2940f, PowerUpType.MUSHROOM),
+                    // Spare weapons before the arena prevent a mandatory weapon from being missed.
+                    weapon(3100f, WeaponType.GUN), weapon(3260f, WeaponType.SWORD)),
+                rivers = listOf(RiverData(1320f, 2300f)),
+                platforms = listOf(PlatformData(1430f, 115f, 110f, isRock = true),
+                    PlatformData(1680f, 165f, 105f, 1620f, 1970f, 190f * rules.platformSpeed),
+                    PlatformData(2070f, 120f, 105f, isRock = true),
+                    // Raised positions offer a way to jump over the boss volley.
+                    PlatformData(3630f, 130f, 125f), PlatformData(4650f, 130f, 125f)),
+                birds = listOf(BirdData(1160f, 1080f, 1290f, 360f),
+                    BirdData(1800f, 1580f, 2160f, 415f), BirdData(2820f, 2730f, 2930f, 380f)),
+                goombas = listOf(enemy(1170f, 1040f, 1290f, 220f),
+                    enemy(2380f, 2330f, 2520f, 235f), enemy(2780f, 2700f, 2910f, 250f)),
+                coins = trail(1460f to 200f, 1770f to 260f, 2100f to 205f,
+                    2580f to 280f, 3660f to 215f, 4680f to 215f)
             )
-
             return listOf(level1, level2, level3, level4, level5)
         }
     }

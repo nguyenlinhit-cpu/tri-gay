@@ -20,7 +20,9 @@ class Projectile(
     val isPlayerBullet: Boolean,
     val isRock: Boolean = false,
     val isSwordWave: Boolean = false,
-    private val bitmapCache: BitmapCache
+    private val bitmapCache: BitmapCache,
+    var speedY: Float = 0f,
+    val gravity: Float = 0f
 ) {
     val size = if (isSwordWave) 50f else 35f
     var isActive = true
@@ -40,6 +42,8 @@ class Projectile(
     fun update(dt: Float) {
         if (!isActive) return
 
+        speedY += gravity * dt
+        y += speedY * dt
         x += speedX * dt
         if (x < -100f || x > 6000f) {
             isActive = false

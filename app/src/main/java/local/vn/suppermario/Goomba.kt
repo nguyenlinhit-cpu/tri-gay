@@ -1,6 +1,7 @@
 package local.vn.suppermario
 
 import android.graphics.Canvas
+import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.RectF
 
@@ -23,6 +24,7 @@ class Goomba(
 
     private val dstRect = RectF()
     private val srcRect = Rect()
+    private val spritePaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
 
     fun getBounds(): RectF {
         return RectF(x, y, x + size, y + size)
@@ -66,7 +68,7 @@ class Goomba(
             val currentBitmap = bitmapCache.goombaFlat
             dstRect.set(x, flatY, x + size, flatY + flatHeight)
             srcRect.set(0, 0, currentBitmap.width, currentBitmap.height)
-            canvas.drawBitmap(currentBitmap, srcRect, dstRect, null)
+            canvas.drawBitmap(currentBitmap, srcRect, dstRect, spritePaint)
             return
         }
 
@@ -75,6 +77,6 @@ class Goomba(
         dstRect.set(x, y, x + size, y + size)
         srcRect.set(0, 0, currentBitmap.width, currentBitmap.height)
 
-        canvas.drawBitmap(currentBitmap, srcRect, dstRect, null)
+        canvas.drawBitmap(currentBitmap, srcRect, dstRect, spritePaint)
     }
 }

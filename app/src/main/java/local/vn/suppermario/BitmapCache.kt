@@ -17,42 +17,51 @@ enum class Difficulty {
 }
 
 class BitmapCache(context: Context) {
-    val marioIdle: Bitmap = BitmapFactory.decodeResource(context.resources, R.drawable.mario_idle)
-    val marioWalkA: Bitmap = BitmapFactory.decodeResource(context.resources, R.drawable.mario_walk_a)
-    val marioWalkB: Bitmap = BitmapFactory.decodeResource(context.resources, R.drawable.mario_walk_b)
-    val marioJump: Bitmap = BitmapFactory.decodeResource(context.resources, R.drawable.mario_jump)
+    private val resources = context.resources
+    private val decodeOptions = BitmapFactory.Options().apply { inScaled = false }
 
-    val pinkIdle: Bitmap = BitmapFactory.decodeResource(context.resources, R.drawable.pink_idle)
-    val pinkWalkA: Bitmap = BitmapFactory.decodeResource(context.resources, R.drawable.pink_walk_a)
-    val pinkWalkB: Bitmap = BitmapFactory.decodeResource(context.resources, R.drawable.pink_walk_b)
-    val pinkJump: Bitmap = BitmapFactory.decodeResource(context.resources, R.drawable.pink_jump)
+    private fun load(resourceId: Int): Bitmap =
+        BitmapFactory.decodeResource(resources, resourceId, decodeOptions).apply {
+            // Game coordinates are pixels, including backgrounds drawn without a destination rect.
+            density = Bitmap.DENSITY_NONE
+        }
 
-    val greenIdle: Bitmap = BitmapFactory.decodeResource(context.resources, R.drawable.green_idle)
-    val greenWalkA: Bitmap = BitmapFactory.decodeResource(context.resources, R.drawable.green_walk_a)
-    val greenWalkB: Bitmap = BitmapFactory.decodeResource(context.resources, R.drawable.green_walk_b)
-    val greenJump: Bitmap = BitmapFactory.decodeResource(context.resources, R.drawable.green_jump)
+    val marioIdle: Bitmap = load(R.drawable.mario_idle)
+    val marioWalkA: Bitmap = load(R.drawable.mario_walk_a)
+    val marioWalkB: Bitmap = load(R.drawable.mario_walk_b)
+    val marioJump: Bitmap = load(R.drawable.mario_jump)
 
-    val goombaIdle: Bitmap = BitmapFactory.decodeResource(context.resources, R.drawable.goomba_idle)
-    val goombaWalkA: Bitmap = BitmapFactory.decodeResource(context.resources, R.drawable.goomba_walk_a)
-    val goombaWalkB: Bitmap = BitmapFactory.decodeResource(context.resources, R.drawable.goomba_walk_b)
-    val goombaFlat: Bitmap = BitmapFactory.decodeResource(context.resources, R.drawable.goomba_flat)
+    val pinkIdle: Bitmap = load(R.drawable.pink_idle)
+    val pinkWalkA: Bitmap = load(R.drawable.pink_walk_a)
+    val pinkWalkB: Bitmap = load(R.drawable.pink_walk_b)
+    val pinkJump: Bitmap = load(R.drawable.pink_jump)
 
-    val bossTurtle: Bitmap = BitmapFactory.decodeResource(context.resources, R.drawable.boss_turtle)
-    val fireball: Bitmap = BitmapFactory.decodeResource(context.resources, R.drawable.fireball)
+    val greenIdle: Bitmap = load(R.drawable.green_idle)
+    val greenWalkA: Bitmap = load(R.drawable.green_walk_a)
+    val greenWalkB: Bitmap = load(R.drawable.green_walk_b)
+    val greenJump: Bitmap = load(R.drawable.green_jump)
 
-    val blockQuestion: Bitmap = BitmapFactory.decodeResource(context.resources, R.drawable.block_question)
-    val blockEmpty: Bitmap = BitmapFactory.decodeResource(context.resources, R.drawable.block_empty)
-    val blockBrick: Bitmap = BitmapFactory.decodeResource(context.resources, R.drawable.block_brick)
+    val goombaIdle: Bitmap = load(R.drawable.goomba_idle)
+    val goombaWalkA: Bitmap = load(R.drawable.goomba_walk_a)
+    val goombaWalkB: Bitmap = load(R.drawable.goomba_walk_b)
+    val goombaFlat: Bitmap = load(R.drawable.goomba_flat)
 
-    val coinGold: Bitmap = BitmapFactory.decodeResource(context.resources, R.drawable.coin_gold)
-    val mushroomRed: Bitmap = BitmapFactory.decodeResource(context.resources, R.drawable.mushroom_red)
-    val star: Bitmap = BitmapFactory.decodeResource(context.resources, R.drawable.star)
-    val waterTop: Bitmap = BitmapFactory.decodeResource(context.resources, R.drawable.water_top)
-    val rock: Bitmap = BitmapFactory.decodeResource(context.resources, R.drawable.rock)
+    val bossTurtle: Bitmap = load(R.drawable.boss_turtle)
+    val fireball: Bitmap = load(R.drawable.fireball)
 
-    val grassTop: Bitmap = BitmapFactory.decodeResource(context.resources, R.drawable.grass_top)
-    val dirtCenter: Bitmap = BitmapFactory.decodeResource(context.resources, R.drawable.dirt_center)
-    val bgClouds: Bitmap = BitmapFactory.decodeResource(context.resources, R.drawable.bg_clouds)
-    val bgHills: Bitmap = BitmapFactory.decodeResource(context.resources, R.drawable.bg_hills)
-    val hudHeart: Bitmap = BitmapFactory.decodeResource(context.resources, R.drawable.hud_heart)
+    val blockQuestion: Bitmap = load(R.drawable.block_question)
+    val blockEmpty: Bitmap = load(R.drawable.block_empty)
+    val blockBrick: Bitmap = load(R.drawable.block_brick)
+
+    val coinGold: Bitmap = load(R.drawable.coin_gold)
+    val mushroomRed: Bitmap = load(R.drawable.mushroom_red)
+    val star: Bitmap = load(R.drawable.star)
+    val waterTop: Bitmap = load(R.drawable.water_top)
+    val rock: Bitmap = load(R.drawable.rock)
+
+    val grassTop: Bitmap = load(R.drawable.grass_top)
+    val dirtCenter: Bitmap = load(R.drawable.dirt_center)
+    val bgClouds: Bitmap = load(R.drawable.bg_clouds)
+    val bgHills: Bitmap = load(R.drawable.bg_hills)
+    val hudHeart: Bitmap = load(R.drawable.hud_heart)
 }

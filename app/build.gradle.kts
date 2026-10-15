@@ -4,6 +4,7 @@ plugins {
 
 android {
     namespace = "local.vn.suppermario"
+    buildToolsVersion = "37.0.0"
     compileSdk {
         version = release(37)
     }
@@ -21,7 +22,11 @@ android {
     buildTypes {
         release {
             optimization {
-                enable = false
+                enable = true
+            }
+            // Local exports are installable; publishing builds keep their own signing key.
+            if (providers.gradleProperty("localApk").orNull == "true") {
+                signingConfig = signingConfigs.getByName("debug")
             }
         }
     }

@@ -33,12 +33,12 @@ class Mario(
     var y = startY
 
     var velocityY = 0f
-    private val gravity = 1200f
-    private val jumpStrength = -720f
+    private val gravity = JumpPhysics.GRAVITY
+    private val jumpStrength = -JumpPhysics.JUMP_SPEED
 
     var velocityX = 0f
-    private val baseSpeed = 380f
-    private val accel = 2400f
+    private val baseSpeed = JumpPhysics.RUN_SPEED
+    private val accel = JumpPhysics.ACCELERATION
     private val friction = 1800f
 
     var isGrounded = false
@@ -49,6 +49,7 @@ class Mario(
 
     private val dstRect = RectF()
     private val srcRect = Rect()
+    private val spritePaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
     private val auraPaint = Paint().apply {
         color = Color.YELLOW
         alpha = 150
@@ -140,6 +141,7 @@ class Mario(
     }
 
     fun updateY(dt: Float) {
+        isGrounded = false
         velocityY += gravity * dt
         y += velocityY * dt
 
@@ -163,6 +165,14 @@ class Mario(
         if (velocityY < -200f) {
             velocityY *= 0.45f
         }
+    }
+
+    fun teleportTo(targetX: Float, surfaceTop: Float) {
+        x = targetX + 15f
+        y = surfaceTop - size - 12f
+        velocityX = 0f
+        velocityY = 0f
+        isGrounded = false
     }
 
     fun setGroundedOn(topY: Float) {
@@ -196,7 +206,7 @@ class Mario(
         if (facingLeft) {
             canvas.scale(-1f, 1f, x + size / 2f, y + size / 2f)
         }
-        canvas.drawBitmap(currentBitmap, srcRect, dstRect, null)
+        canvas.drawBitmap(currentBitmap, srcRect, dstRect, spritePaint)
 
         if (isSuperSpeed) {
             canvas.drawCircle(x + size / 2f, y + size / 2f, size / 2f + 10f, auraPaint)

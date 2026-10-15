@@ -22,7 +22,10 @@ enum class GameState {
 }
 
 class GameView(context: Context) : SurfaceView(context), Runnable, SurfaceHolder.Callback {
+    @Volatile
     private var isPlaying = false
+    private var activityResumed = false
+    private var surfaceReady = false
     private var gameThread: Thread? = null
 
     // Cache tài nguyên & Âm thanh
@@ -57,9 +60,12 @@ class GameView(context: Context) : SurfaceView(context), Runnable, SurfaceHolder
     // Đối tượng game
     private var mario: Mario? = null
     private var boss: Boss? = null
+    private var arenaActive = false
     private var flagpole: Flagpole? = null
 
     private val pipes = mutableListOf<Pipe>()
+    private val cacti = mutableListOf<PipeCactus>()
+    private val birds = mutableListOf<RockBird>()
     private val blocks = mutableListOf<Block>()
     private val coins = mutableListOf<Coin>()
     private val goombas = mutableListOf<Goomba>()
@@ -100,8 +106,13 @@ class GameView(context: Context) : SurfaceView(context), Runnable, SurfaceHolder
     private var isRightPressed = false
     private var isJumpPressed = false
     private var autoGunTimer = 0f
+    private var attackCooldown = 0f
+    private var attackDuration = 0.38f
+    private var isAttackPressed = false
+    private val attackButtonRenderer = AttackButton()
 
     // Cọ vẽ
+    private val spritePaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
     private val btnNormalPaint = Paint().apply {
         color = Color.DKGRAY
         alpha = 200
@@ -109,10 +120,6 @@ class GameView(context: Context) : SurfaceView(context), Runnable, SurfaceHolder
     private val btnPressedPaint = Paint().apply {
         color = Color.rgb(230, 40, 40)
         alpha = 240
-    }
-    private val attackBtnPaint = Paint().apply {
-        color = Color.rgb(255, 140, 0)
-        alpha = 230
     }
     private val textPaint = Paint().apply {
         color = Color.WHITE
@@ -143,6 +150,9 @@ class GameView(context: Context) : SurfaceView(context), Runnable, SurfaceHolder
         textSize = 32f
         isFakeBoldText = true
         textAlign = Paint.Align.CENTER
+    }
+    private val attackGatePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.argb(200, 255, 130, 55)
     }
     private val overlayPaint = Paint().apply {
         color = Color.BLACK
@@ -189,34 +199,56 @@ class GameView(context: Context) : SurfaceView(context), Runnable, SurfaceHolder
         if (bitmapCache == null) {
             bitmapCache = BitmapCache(context)
         }
-        gameState = GameState.SPLASH_SCREEN
-        resume()
+        surfaceReady = true
+        startGameThread()
     }
 
     fun resume() {
-        if (!isPlaying) {
+        activityResumed = true
+        startGameThread()
+    }
+
+    private fun startGameThread() {
+        if (activityResumed && surfaceReady && !isPlaying) {
             isPlaying = true
-            gameThread = Thread(this).apply { start() }
+            gameThread = Thread(this, "MarioGameLoop").apply { start() }
         }
     }
 
     fun pause() {
+        activityResumed = false
+        stopGameThread()
+        isLeftPressed = false
+        isRightPressed = false
+        isJumpPressed = false
+        isAttackPressed = false
+    }
+
+    private fun stopGameThread() {
         isPlaying = false
-        var retry = true
-        while (retry) {
+        val thread = gameThread ?: return
+        thread.interrupt()
+        var interrupted = false
+        while (thread.isAlive) {
             try {
-                gameThread?.join()
-                retry = false
-            } catch (e: InterruptedException) {
-                e.printStackTrace()
+                thread.join()
+            } catch (_: InterruptedException) {
+                interrupted = true
             }
         }
+        gameThread = null
+        if (interrupted) Thread.currentThread().interrupt()
+    }
+
+    fun release() {
+        pause()
+        soundManager.release()
     }
 
     private fun updateMenuBounds(wF: Float, hF: Float) {
         val cache = bitmapCache ?: return
 
-        if (scaledBgClouds == null || scaledBgClouds?.width != width) {
+        if (scaledBgClouds?.width != width || scaledBgClouds?.height != (height * 0.5f).toInt()) {
             scaledBgClouds = Bitmap.createScaledBitmap(cache.bgClouds, width, (height * 0.5f).toInt(), true)
             scaledBgHills = Bitmap.createScaledBitmap(cache.bgHills, width, (height * 0.5f).toInt(), true)
         }
@@ -255,13 +287,13 @@ class GameView(context: Context) : SurfaceView(context), Runnable, SurfaceHolder
         val spaceBtnWidth = 240f
         jumpBtn.set(wF - padding - spaceBtnWidth, bottomY, wF - padding, bottomY + btnHeight)
 
-        val attackW = 180f
+        val attackW = 160f
         attackBtn.set(jumpBtn.left - attackW - 20f, bottomY, jumpBtn.left - 20f, bottomY + btnHeight)
 
         leftTouchArea.set(leftBtn.left - 20f, leftBtn.top - 20f, leftBtn.right + 12f, leftBtn.bottom + 20f)
         rightTouchArea.set(rightBtn.left - 12f, rightBtn.top - 20f, rightBtn.right + 20f, rightBtn.bottom + 20f)
-        jumpTouchArea.set(jumpBtn.left - 20f, jumpBtn.top - 20f, jumpBtn.right + 20f, jumpBtn.bottom + 20f)
-        attackTouchArea.set(attackBtn.left - 20f, attackBtn.top - 20f, attackBtn.right + 20f, attackBtn.bottom + 20f)
+        jumpTouchArea.set(jumpBtn.left - 8f, jumpBtn.top - 20f, jumpBtn.right + 20f, jumpBtn.bottom + 20f)
+        attackTouchArea.set(attackBtn.left - 20f, attackBtn.top - 20f, attackBtn.right + 8f, attackBtn.bottom + 20f)
     }
 
     private fun startNewGame() {
@@ -289,11 +321,18 @@ class GameView(context: Context) : SurfaceView(context), Runnable, SurfaceHolder
         remainingTime = level.timeLimit
         timeAccumulator = 0f
         autoGunTimer = 0f
+        attackCooldown = 0f
+        isAttackPressed = false
+        isLeftPressed = false
+        isRightPressed = false
+        isJumpPressed = false
 
         val groundY = height - 100f
         flagpole = Flagpole(level.flagpoleX, groundY)
 
-        boss = if (level.isBossLevel) Boss(level.bossX, groundY, 140f, 140f, cache) else null
+        arenaActive = false
+        boss = if (level.isBossLevel) Boss(level.bossX, groundY, 140f, 140f, cache,
+            ChallengeRules.forDifficulty(selectedDifficulty)) else null
 
         rivers.clear()
         for (rData in level.rivers) {
@@ -321,6 +360,18 @@ class GameView(context: Context) : SurfaceView(context), Runnable, SurfaceHolder
             pipes.add(Pipe(pData.x, groundY, 110f, pData.height, pData.teleportTargetX))
         }
 
+        val hazardTempo = ChallengeRules.forDifficulty(selectedDifficulty).hazardTempo
+        cacti.clear()
+        val teleportExits = level.pipes.mapNotNull { it.teleportTargetX }.toSet()
+        for ((index, pipe) in pipes.withIndex()) {
+            pipe.isTeleportExit = pipe.x in teleportExits
+            if (pipe.teleportTargetX == null && pipe.x !in teleportExits) {
+                cacti.add(PipeCactus(pipe, hazardTempo, index * 0.37f))
+            }
+        }
+        birds.clear()
+        for (bird in level.birds) birds.add(RockBird(bird, groundY, hazardTempo))
+
         blocks.clear()
         for (bData in level.blocks) {
             blocks.add(Block(bData.x, groundY - bData.yOffset, 75f, bData.type, cache, bData.powerUpType, bData.weaponType))
@@ -339,14 +390,15 @@ class GameView(context: Context) : SurfaceView(context), Runnable, SurfaceHolder
         powerUps.clear()
         projectiles.clear()
 
-        levelTransitionTimer = 2.0f
+        levelTransitionTimer = 3.0f
         gameState = GameState.LEVEL_TRANSITION
     }
 
     override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {}
 
     override fun surfaceDestroyed(holder: SurfaceHolder) {
-        pause()
+        surfaceReady = false
+        stopGameThread()
     }
 
     override fun run() {
@@ -376,8 +428,9 @@ class GameView(context: Context) : SurfaceView(context), Runnable, SurfaceHolder
                 val sleepMs = ((targetNanos - elapsed) / 1_000_000L).coerceAtLeast(1)
                 try {
                     Thread.sleep(sleepMs)
-                } catch (e: InterruptedException) {
-                    e.printStackTrace()
+                } catch (_: InterruptedException) {
+                    Thread.currentThread().interrupt()
+                    break
                 }
             }
         }
@@ -387,6 +440,7 @@ class GameView(context: Context) : SurfaceView(context), Runnable, SurfaceHolder
         val m = mario ?: return
         val cache = bitmapCache ?: return
 
+        attackCooldown = (attackCooldown - dt).coerceAtLeast(0f)
         timeAccumulator += dt
         if (timeAccumulator >= 1.0f) {
             timeAccumulator -= 1.0f
@@ -413,7 +467,7 @@ class GameView(context: Context) : SurfaceView(context), Runnable, SurfaceHolder
             plat.update(dt)
 
             if (m.isGrounded && m.y + m.size >= plat.y - 10f && m.y + m.size <= plat.y + 15f) {
-                if (m.x + m.size >= plat.x && m.x <= plat.x + plat.width) {
+                if (m.x + m.size > oldX && m.x < oldX + plat.width) {
                     m.x += (plat.x - oldX)
                 }
             }
@@ -449,8 +503,9 @@ class GameView(context: Context) : SurfaceView(context), Runnable, SurfaceHolder
                         m.setGroundedOn(pipe.topY)
 
                         pipe.teleportTargetX?.let { targetX ->
-                            m.x = targetX
-                            m.y = height - m.size - 250f
+                            val exit = pipes.first { it.x == targetX }
+                            m.teleportTo(targetX, exit.topY)
+                            marioBounds = m.getBounds()
                             soundManager.playJump()
                         }
                     }
@@ -514,9 +569,19 @@ class GameView(context: Context) : SurfaceView(context), Runnable, SurfaceHolder
             }
         }
 
-        cameraX = m.x - width / 3f
-        if (cameraX < 0f) cameraX = 0f
-        if (cameraX > worldWidth - width) cameraX = worldWidth - width
+        val level = currentLevelData
+        if (level != null && level.isBossLevel && boss?.isDefeated == false) {
+            if (m.x >= level.arenaStartX && !arenaActive) {
+                arenaActive = true
+                if (m.weapon == WeaponType.NONE) {
+                    m.weapon = WeaponType.SWORD
+                    soundManager.playCoin()
+                }
+            }
+            if (arenaActive) m.x = m.x.coerceIn(level.arenaStartX, level.flagpoleX - 230f - m.size)
+        }
+        cameraX = (m.x - width / 3f).coerceIn(0f, (worldWidth - width).coerceAtLeast(0f))
+        marioBounds = m.getBounds()
 
         for (coin in coins) {
             if (!coin.isCollected && coin.getBounds().right >= viewLeft && coin.getBounds().left <= viewRight) {
@@ -545,6 +610,32 @@ class GameView(context: Context) : SurfaceView(context), Runnable, SurfaceHolder
             }
         }
 
+        // Refresh after landing or teleporting before testing hazards.
+        marioBounds = m.getBounds()
+        for (cactus in cacti) {
+            cactus.update(dt, marioBounds.centerX())
+            if (cactus.canHit() && RectF.intersects(marioBounds, cactus.getBounds())) {
+                if (hurtPlayer(m)) return
+            }
+        }
+        for (bird in birds) {
+            if (!bird.isAlive) continue
+            if (bird.getBounds().right < viewLeft || bird.getBounds().left > viewRight) continue
+            if (bird.update(dt, marioBounds.centerX())) {
+                projectiles.add(Projectile(bird.x + 20f, bird.y + 48f, 0f,
+                    isPlayerBullet = false, isRock = true, bitmapCache = cache,
+                    speedY = 90f, gravity = 720f))
+            }
+            if (RectF.intersects(marioBounds, bird.getBounds())) {
+                if (m.velocityY > 0f && m.y + m.size - m.velocityY * dt <= bird.getBounds().top + 25f) {
+                    bird.isAlive = false
+                    m.velocityY = -550f
+                    score += 300
+                    soundManager.playStomp()
+                } else if (hurtPlayer(m)) return
+            }
+        }
+
         val projIterator = projectiles.iterator()
         while (projIterator.hasNext()) {
             val proj = projIterator.next()
@@ -556,6 +647,10 @@ class GameView(context: Context) : SurfaceView(context), Runnable, SurfaceHolder
             proj.update(dt)
 
             val projBounds = proj.getBounds()
+            if (proj.y > groundY || pipes.any { RectF.intersects(projBounds, it.bounds) } ||
+                platforms.any { RectF.intersects(projBounds, it.bounds) }) {
+                proj.isActive = false
+            }
             for (block in blocks) {
                 if (RectF.intersects(projBounds, block.bounds)) {
                     proj.isActive = false
@@ -565,8 +660,41 @@ class GameView(context: Context) : SurfaceView(context), Runnable, SurfaceHolder
 
             if (!proj.isActive) continue
 
+            if (proj.isPlayerBullet) {
+                for (goomba in goombas) {
+                    if (goomba.isAlive && !goomba.isStomped && RectF.intersects(projBounds, goomba.getBounds())) {
+                        goomba.stomp()
+                        proj.isActive = false
+                        score += 200
+                        soundManager.playStomp()
+                        break
+                    }
+                }
+                if (!proj.isActive) continue
+                for (bird in birds) {
+                    if (bird.isAlive && RectF.intersects(projBounds, bird.getBounds())) {
+                        bird.isAlive = false
+                        proj.isActive = false
+                        score += 300
+                        soundManager.playStomp()
+                        break
+                    }
+                }
+                if (!proj.isActive) continue
+                for (cactus in cacti) {
+                    if (cactus.canHit() && RectF.intersects(projBounds, cactus.getBounds())) {
+                        cactus.isAlive = false
+                        proj.isActive = false
+                        score += 200
+                        soundManager.playStomp()
+                        break
+                    }
+                }
+                if (!proj.isActive) continue
+            }
+
             val b = boss
-            if (proj.isPlayerBullet && b != null && !b.isDefeated) {
+            if (proj.isPlayerBullet && b != null && arenaActive && !b.isDefeated) {
                 if (RectF.intersects(projBounds, b.getBounds())) {
                     b.takeDamage(1)
                     proj.isActive = false
@@ -593,29 +721,23 @@ class GameView(context: Context) : SurfaceView(context), Runnable, SurfaceHolder
 
         val b = boss
         if (b != null && !b.isDefeated) {
-            b.update(dt)
-
-            if (b.shootTimer >= 2.5f) {
-                b.shootTimer = 0f
-                projectiles.add(Projectile(b.x - 20f, b.y + 40f, -400f, isPlayerBullet = false, isRock = false, isSwordWave = false, cache))
-                soundManager.playHurt()
-            }
-
-            if (RectF.intersects(marioBounds, b.getBounds())) {
-                if (m.weapon == WeaponType.SWORD) {
-                    b.takeDamage(1)
-                    soundManager.playStomp()
-                    if (b.isDefeated) score += 2000
-                } else if (m.invincibleTimer <= 0f) {
-                    if (m.isBig) {
-                        m.shrinkToNormal()
-                        soundManager.playHurt()
-                    } else {
-                        handleLifeLost()
-                        return
-                    }
+            b.update(dt, arenaActive)
+            if (arenaActive && b.consumeShot()) {
+                val rules = ChallengeRules.forDifficulty(selectedDifficulty)
+                val shotX = if (m.x < b.x) b.x - 36f else b.x + b.width
+                val shotY = b.y + 48f
+                val dx = marioBounds.centerX() - shotX
+                val speedX = if (dx < 0f) -rules.bossShotSpeed else rules.bossShotSpeed
+                val travelTime = (kotlin.math.abs(dx) / rules.bossShotSpeed).coerceAtLeast(0.35f)
+                val speedY = ((marioBounds.centerY() - shotY) / travelTime).coerceIn(-240f, 240f)
+                projectiles.add(Projectile(shotX, shotY, speedX, isPlayerBullet = false,
+                    bitmapCache = cache, speedY = speedY))
+                if (b.isEnraged) {
+                    projectiles.add(Projectile(shotX, shotY - 95f, speedX,
+                        isPlayerBullet = false, bitmapCache = cache, speedY = speedY * 0.4f))
                 }
             }
+            if (RectF.intersects(marioBounds, b.getBounds()) && hurtPlayer(m)) return
         }
 
         for (goomba in goombas) {
@@ -647,7 +769,7 @@ class GameView(context: Context) : SurfaceView(context), Runnable, SurfaceHolder
         }
 
         flagpole?.let { flag ->
-            if (RectF.intersects(marioBounds, flag.bounds)) {
+            if ((boss == null || boss?.isDefeated == true) && RectF.intersects(marioBounds, flag.bounds)) {
                 soundManager.playCoin()
                 score += 1000 + remainingTime * 10
                 currentLevelIndex++
@@ -663,6 +785,10 @@ class GameView(context: Context) : SurfaceView(context), Runnable, SurfaceHolder
     private fun performAttack() {
         val m = mario ?: return
         val cache = bitmapCache ?: return
+
+        if (gameState != GameState.PLAYING || attackCooldown > 0f || m.weapon == WeaponType.NONE) return
+        attackDuration = if (m.weapon == WeaponType.SWORD) 0.38f else 0.28f
+        attackCooldown = attackDuration
 
         when (m.weapon) {
             WeaponType.GUN -> {
@@ -684,6 +810,18 @@ class GameView(context: Context) : SurfaceView(context), Runnable, SurfaceHolder
         }
     }
 
+    /** True when the caller must stop updating the old level. */
+    private fun hurtPlayer(m: Mario): Boolean {
+        if (m.invincibleTimer > 0f) return false
+        if (m.isBig) {
+            m.shrinkToNormal()
+            soundManager.playHurt()
+            return false
+        }
+        handleLifeLost()
+        return true
+    }
+
     private fun handleLifeLost() {
         lives--
         soundManager.playHurt()
@@ -698,22 +836,24 @@ class GameView(context: Context) : SurfaceView(context), Runnable, SurfaceHolder
         if (holder.surface.isValid) {
             val canvas: Canvas = holder.lockCanvas() ?: return
 
-            val cache = bitmapCache
-            val wF = width.toFloat()
-            val hF = height.toFloat()
+            try {
+                val cache = bitmapCache
+                val wF = width.toFloat()
+                val hF = height.toFloat()
 
-            updateMenuBounds(wF, hF)
+                updateMenuBounds(wF, hF)
 
-            when (gameState) {
-                GameState.SPLASH_SCREEN -> drawSplashScreen(canvas, cache, wF, hF)
-                GameState.START_MENU -> drawStartMenu(canvas, cache, wF, hF)
-                GameState.LEVEL_TRANSITION -> drawLevelTransition(canvas, cache, wF, hF)
-                GameState.PLAYING -> drawGameWorld(canvas, cache, wF, hF)
-                GameState.GAME_OVER -> drawGameOver(canvas, wF, hF)
-                GameState.ALL_CLEAR -> drawAllClear(canvas, wF, hF)
+                when (gameState) {
+                    GameState.SPLASH_SCREEN -> drawSplashScreen(canvas, cache, wF, hF)
+                    GameState.START_MENU -> drawStartMenu(canvas, cache, wF, hF)
+                    GameState.LEVEL_TRANSITION -> drawLevelTransition(canvas, cache, wF, hF)
+                    GameState.PLAYING -> drawGameWorld(canvas, cache, wF, hF)
+                    GameState.GAME_OVER -> drawGameOver(canvas, wF, hF)
+                    GameState.ALL_CLEAR -> drawAllClear(canvas, wF, hF)
+                }
+            } finally {
+                holder.unlockCanvasAndPost(canvas)
             }
-
-            holder.unlockCanvasAndPost(canvas)
         }
     }
 
@@ -753,7 +893,7 @@ class GameView(context: Context) : SurfaceView(context), Runnable, SurfaceHolder
             val marioY = hF * 0.53f
             val dstRect = RectF(marioX, marioY, marioX + 90f, marioY + 90f)
             val srcRect = Rect(0, 0, cache.marioJump.width, cache.marioJump.height)
-            canvas.drawBitmap(cache.marioJump, srcRect, dstRect, null)
+            canvas.drawBitmap(cache.marioJump, srcRect, dstRect, spritePaint)
 
             val qRect = RectF(marioX + 5f, marioY + 100f, marioX + 85f, marioY + 180f)
             val qSrc = Rect(0, 0, cache.blockQuestion.width, cache.blockQuestion.height)
@@ -806,7 +946,7 @@ class GameView(context: Context) : SurfaceView(context), Runnable, SurfaceHolder
         val iconSize = 75f
         val iconRect = RectF(rect.centerX() - iconSize / 2f, rect.top + 15f, rect.centerX() + iconSize / 2f, rect.top + 15f + iconSize)
         val srcRect = Rect(0, 0, bitmap.width, bitmap.height)
-        canvas.drawBitmap(bitmap, srcRect, iconRect, null)
+        canvas.drawBitmap(bitmap, srcRect, iconRect, spritePaint)
 
         val labelPaint = Paint().apply {
             color = Color.WHITE
@@ -839,6 +979,11 @@ class GameView(context: Context) : SurfaceView(context), Runnable, SurfaceHolder
         val worldName = currentLevelData?.worldName ?: "WORLD 1-1"
         canvas.drawText(worldName, wF / 2f, hF / 2f - 40f, titlePaint)
 
+        val challenge = currentLevelData?.challenge.orEmpty()
+        val hintPaint = Paint(sectionPaint)
+        val hintWidth = hintPaint.measureText(challenge)
+        if (hintWidth > wF - 50f) hintPaint.textSize *= (wF - 50f) / hintWidth
+        canvas.drawText(challenge, wF / 2f, hF / 2f - 100f, hintPaint)
         cache?.let { c ->
             val iconSize = 80f
             val marioBmp = when (selectedCharacter) {
@@ -848,7 +993,7 @@ class GameView(context: Context) : SurfaceView(context), Runnable, SurfaceHolder
             }
             val srcRect = Rect(0, 0, marioBmp.width, marioBmp.height)
             val dstRect = RectF(wF / 2f - 90f, hF / 2f + 10f, wF / 2f - 90f + iconSize, hF / 2f + 10f + iconSize)
-            canvas.drawBitmap(marioBmp, srcRect, dstRect, null)
+            canvas.drawBitmap(marioBmp, srcRect, dstRect, spritePaint)
 
             canvas.drawText("x   $lives", wF / 2f + 50f, hF / 2f + 65f, sectionPaint)
         }
@@ -912,9 +1057,21 @@ class GameView(context: Context) : SurfaceView(context), Runnable, SurfaceHolder
         val viewLeft = cameraX - 100f
         val viewRight = cameraX + wF + 100f
 
+        val level = currentLevelData
+        if (level?.isBossLevel == true && boss?.isDefeated == false) {
+            val gateX = level.flagpoleX - 230f
+            canvas.drawRect(gateX, hF - 420f, gateX + 12f, hF - 100f, attackGatePaint)
+            canvas.drawText("HẠ BOSS ĐỂ MỞ CỔNG", gateX, hF - 440f, sectionPaint)
+            if (arenaActive) {
+                canvas.drawRect(level.arenaStartX - 12f, hF - 420f, level.arenaStartX, hF - 100f, attackGatePaint)
+            }
+        }
+
         flagpole?.let { if (it.x + 100f >= viewLeft && it.x <= viewRight) it.draw(canvas) }
         boss?.let { if (it.x + 200f >= viewLeft && it.x <= viewRight) it.draw(canvas) }
         for (plat in platforms) if (plat.bounds.right >= viewLeft && plat.bounds.left <= viewRight) plat.draw(canvas)
+        for (cactus in cacti) cactus.draw(canvas)
+        for (bird in birds) if (bird.getBounds().right >= viewLeft && bird.getBounds().left <= viewRight) bird.draw(canvas)
         for (pipe in pipes) if (pipe.bounds.right >= viewLeft && pipe.bounds.left <= viewRight) pipe.draw(canvas)
         for (block in blocks) if (block.bounds.right >= viewLeft && block.bounds.left <= viewRight) block.draw(canvas)
         for (coin in coins) if (coin.getBounds().right >= viewLeft && coin.getBounds().left <= viewRight) coin.draw(canvas)
@@ -997,14 +1154,8 @@ class GameView(context: Context) : SurfaceView(context), Runnable, SurfaceHolder
         canvas.drawText("SPACE", jumpBtn.centerX(), jumpBtn.centerY() + 18f, textPaint)
 
         if (m != null && m.weapon != WeaponType.NONE) {
-            val atkLabel = when (m.weapon) {
-                WeaponType.GUN -> "⚡ BẮN"
-                WeaponType.ROCK_THROW -> "🪨 NÉM"
-                WeaponType.SWORD -> "⚔️ CHÉM"
-                else -> ""
-            }
-            canvas.drawRoundRect(attackBtn, 25f, 25f, attackBtnPaint)
-            canvas.drawText(atkLabel, attackBtn.centerX(), attackBtn.centerY() + 15f, textPaint)
+            attackButtonRenderer.draw(canvas, attackBtn, m.weapon, isAttackPressed,
+                (attackCooldown / attackDuration).coerceIn(0f, 1f))
         }
     }
 
@@ -1045,11 +1196,21 @@ class GameView(context: Context) : SurfaceView(context), Runnable, SurfaceHolder
             return true
         }
 
+        if (action == MotionEvent.ACTION_CANCEL) {
+            isLeftPressed = false
+            isRightPressed = false
+            isJumpPressed = false
+            isAttackPressed = false
+            mario?.releaseJump()
+            return true
+        }
+        if (gameState != GameState.PLAYING) return true
         val m = mario ?: return super.onTouchEvent(event)
         val pointerCount = event.pointerCount
         var touchLeft = false
         var touchRight = false
         var touchJump = false
+        var touchAttack = false
         val actionIndex = event.actionIndex
 
         for (i in 0 until pointerCount) {
@@ -1073,6 +1234,7 @@ class GameView(context: Context) : SurfaceView(context), Runnable, SurfaceHolder
             }
 
             if (attackTouchArea.contains(pX, pY)) {
+                touchAttack = true
                 if (action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_POINTER_DOWN) {
                     if (i == actionIndex) {
                         performAttack()
@@ -1088,6 +1250,7 @@ class GameView(context: Context) : SurfaceView(context), Runnable, SurfaceHolder
         isLeftPressed = touchLeft
         isRightPressed = touchRight
         isJumpPressed = touchJump
+        isAttackPressed = touchAttack
 
         return true
     }
@@ -1127,6 +1290,7 @@ class GameView(context: Context) : SurfaceView(context), Runnable, SurfaceHolder
                 isJumpPressed = true
             }
             KeyEvent.KEYCODE_J, KeyEvent.KEYCODE_F -> {
+                isAttackPressed = true
                 performAttack()
             }
             else -> return super.onKeyDown(keyCode, event)
@@ -1139,6 +1303,7 @@ class GameView(context: Context) : SurfaceView(context), Runnable, SurfaceHolder
         when (keyCode) {
             KeyEvent.KEYCODE_A -> isLeftPressed = false
             KeyEvent.KEYCODE_D -> isRightPressed = false
+            KeyEvent.KEYCODE_J, KeyEvent.KEYCODE_F -> isAttackPressed = false
             KeyEvent.KEYCODE_SPACE -> {
                 isJumpPressed = false
                 m?.releaseJump()

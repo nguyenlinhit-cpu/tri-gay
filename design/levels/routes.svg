@@ -1,0 +1,129 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="1120" viewBox="0 0 1440 1120">
+<rect width="1440" height="1120" fill="#10192b"/>
+<style>text{font-family: sans-serif;fill:#edf5ff} .label{font-size:23px;font-weight:bold}.small{font-size:15px;fill:#acc3dc}</style>
+<text x="50" y="46" font-size="30" font-weight="bold">MARIO · BỐ CỤC 5 MÀN</text>
+<text x="50" y="76" class="small">Sơ đồ vị trí theo chiều ngang · độ cao được phóng đại để dễ đọc</text>
+<text x="50" y="120" class="label">1 · VƯỜN GAI</text>
+<rect x="60" y="240" width="1320" height="12" rx="3" fill="#64b78a"/>
+<rect x="484.8" y="240" width="105.6" height="19" fill="#48a9ed"/>
+<rect x="909.6" y="240" width="127.19999999999999" height="19" fill="#48a9ed"/>
+<rect x="232.79999999999998" y="201.6" width="26.4" height="38.4" rx="2" fill="#3ac17e"/>
+<rect x="367.2" y="188.8" width="26.4" height="51.2" rx="2" fill="#3ac17e"/>
+<rect x="655.1999999999999" y="195.2" width="26.4" height="44.800000000000004" rx="2" fill="#3ac17e"/>
+<rect x="789.6" y="182.4" width="26.4" height="57.6" rx="2" fill="#3ac17e"/>
+<rect x="1128.0" y="185.6" width="26.4" height="54.4" rx="2" fill="#3ac17e"/>
+<rect x="516.0" y="204.8" width="28.799999999999997" height="7" rx="2" fill="#a2b9d1"/>
+<rect x="936.0" y="208.0" width="26.4" height="7" rx="2" fill="#a2b9d1"/>
+<rect x="988.8" y="193.6" width="26.4" height="7" rx="2" fill="#a2b9d1"/>
+<path d="M414.4 164.1 q4 -7 8 0 q4 -7 8 0" fill="none" stroke="#ffab96" stroke-width="3"/>
+<path d="M707.1999999999999 159.5 q4 -7 8 0 q4 -7 8 0" fill="none" stroke="#ffab96" stroke-width="3"/>
+<path d="M949.6 154.89999999999998 q4 -7 8 0 q4 -7 8 0" fill="none" stroke="#ffab96" stroke-width="3"/>
+<circle cx="182.39999999999998" cy="234" r="5" fill="#ed8b64"/>
+<circle cx="297.6" cy="234" r="5" fill="#ed8b64"/>
+<circle cx="612.0" cy="234" r="5" fill="#ed8b64"/>
+<circle cx="842.4" cy="234" r="5" fill="#ed8b64"/>
+<circle cx="1200.0" cy="234" r="5" fill="#ed8b64"/>
+<line x1="1308.0" y1="175" x2="1308.0" y2="240" stroke="white" stroke-width="3"/><path d="M1308.0 175 l22 8 l-22 8" fill="#f56e84"/>
+<text x="60" y="282" class="small">0</text><text x="660.0" y="282" class="small">2500</text><text x="1260.0" y="282" class="small">5000</text>
+<text x="50" y="304" class="label">2 · ĐẢO ĐÁ</text>
+<rect x="60" y="424" width="1320" height="12" rx="3" fill="#64b78a"/>
+<rect x="295.2" y="424" width="256.8" height="19" fill="#48a9ed"/>
+<rect x="717.6" y="424" width="218.4" height="19" fill="#48a9ed"/>
+<rect x="998.4" y="424" width="117.6" height="19" fill="#48a9ed"/>
+<rect x="216.0" y="376.0" width="26.4" height="48.0" rx="2" fill="#3ac17e"/>
+<rect x="609.6" y="366.4" width="26.4" height="57.6" rx="2" fill="#3ac17e"/>
+<rect x="1142.3999999999999" y="368.0" width="26.4" height="56.0" rx="2" fill="#3ac17e"/>
+<rect x="321.59999999999997" y="388.8" width="26.4" height="7" rx="2" fill="#a2b9d1"/>
+<rect x="379.2" y="372.8" width="24.0" height="7" rx="2" fill="#a2b9d1"/>
+<rect x="436.8" y="388.8" width="24.0" height="7" rx="2" fill="#a2b9d1"/>
+<rect x="496.8" y="371.2" width="25.2" height="7" rx="2" fill="#a2b9d1"/>
+<rect x="744.0" y="385.6" width="25.2" height="7" rx="2" fill="#a2b9d1"/>
+<rect x="801.6" y="368.0" width="24.0" height="7" rx="2" fill="#a2b9d1"/>
+<rect x="868.8" y="385.6" width="24.0" height="7" rx="2" fill="#a2b9d1"/>
+<rect x="1022.4" y="390.4" width="24.0" height="7" rx="2" fill="#a2b9d1"/>
+<rect x="1070.4" y="372.8" width="24.0" height="7" rx="2" fill="#a2b9d1"/>
+<path d="M352.0 336.6 q4 -7 8 0 q4 -7 8 0" fill="none" stroke="#ffab96" stroke-width="3"/>
+<path d="M486.4 333.15 q4 -7 8 0 q4 -7 8 0" fill="none" stroke="#ffab96" stroke-width="3"/>
+<path d="M796.0 333.15 q4 -7 8 0 q4 -7 8 0" fill="none" stroke="#ffab96" stroke-width="3"/>
+<path d="M1180.0 350.4 q4 -7 8 0 q4 -7 8 0" fill="none" stroke="#ffab96" stroke-width="3"/>
+<circle cx="175.2" cy="418" r="5" fill="#ed8b64"/>
+<circle cx="571.2" cy="418" r="5" fill="#ed8b64"/>
+<circle cx="657.6" cy="418" r="5" fill="#ed8b64"/>
+<circle cx="1200.0" cy="418" r="5" fill="#ed8b64"/>
+<line x1="1308.0" y1="359" x2="1308.0" y2="424" stroke="white" stroke-width="3"/><path d="M1308.0 359 l22 8 l-22 8" fill="#f56e84"/>
+<text x="60" y="466" class="small">0</text><text x="660.0" y="466" class="small">2500</text><text x="1260.0" y="466" class="small">5000</text>
+<text x="50" y="488" class="label">3 · CẦU CHUYỂN ĐỘNG</text>
+<rect x="60" y="608" width="1320" height="12" rx="3" fill="#64b78a"/>
+<rect x="312.0" y="608" width="285.59999999999997" height="19" fill="#48a9ed"/>
+<rect x="784.8" y="608" width="338.4" height="19" fill="#48a9ed"/>
+<rect x="225.6" y="553.6" width="26.4" height="54.4" rx="2" fill="#3ac17e"/>
+<rect x="645.6" y="550.4" width="26.4" height="57.6" rx="2" fill="#3ac17e"/>
+<rect x="1168.8" y="548.8" width="26.4" height="59.2" rx="2" fill="#3ac17e"/>
+<rect x="336.0" y="574.4" width="30.0" height="7" rx="2" fill="#a2b9d1"/>
+<line x1="386.4" x2="472.8" y1="561.4" y2="561.4" stroke="#d19bff" stroke-dasharray="4 4"/>
+<rect x="408.0" y="558.4" width="27.599999999999998" height="7" rx="2" fill="#d19bff"/>
+<rect x="504.0" y="572.8" width="27.599999999999998" height="7" rx="2" fill="#a2b9d1"/>
+<rect x="808.8" y="572.8" width="28.799999999999997" height="7" rx="2" fill="#a2b9d1"/>
+<line x1="856.8" x2="943.1999999999999" y1="556.6" y2="556.6" stroke="#d19bff" stroke-dasharray="4 4"/>
+<rect x="876.0" y="553.6" width="25.2" height="7" rx="2" fill="#d19bff"/>
+<rect x="976.8" y="568.0" width="26.4" height="7" rx="2" fill="#a2b9d1"/>
+<line x1="1027.1999999999998" x2="1111.2" y1="558.2" y2="558.2" stroke="#d19bff" stroke-dasharray="4 4"/>
+<rect x="1044.0" y="555.2" width="25.2" height="7" rx="2" fill="#d19bff"/>
+<path d="M426.4 513.7 q4 -7 8 0 q4 -7 8 0" fill="none" stroke="#ffab96" stroke-width="3"/>
+<path d="M738.4 527.5 q4 -7 8 0 q4 -7 8 0" fill="none" stroke="#ffab96" stroke-width="3"/>
+<path d="M899.1999999999999 511.4 q4 -7 8 0 q4 -7 8 0" fill="none" stroke="#ffab96" stroke-width="3"/>
+<path d="M1060.0 511.4 q4 -7 8 0 q4 -7 8 0" fill="none" stroke="#ffab96" stroke-width="3"/>
+<circle cx="180.0" cy="602" r="5" fill="#ed8b64"/>
+<circle cx="264.0" cy="602" r="5" fill="#ed8b64"/>
+<circle cx="614.4" cy="602" r="5" fill="#ed8b64"/>
+<circle cx="729.6" cy="602" r="5" fill="#ed8b64"/>
+<circle cx="1231.2" cy="602" r="5" fill="#ed8b64"/>
+<line x1="1308.0" y1="543" x2="1308.0" y2="608" stroke="white" stroke-width="3"/><path d="M1308.0 543 l22 8 l-22 8" fill="#f56e84"/>
+<text x="60" y="650" class="small">0</text><text x="660.0" y="650" class="small">2500</text><text x="1260.0" y="650" class="small">5000</text>
+<text x="50" y="672" class="label">4 · PHÁO ĐÀI ỐNG</text>
+<rect x="60" y="792" width="1320" height="12" rx="3" fill="#64b78a"/>
+<rect x="376.8" y="792" width="228.0" height="19" fill="#48a9ed"/>
+<rect x="957.6" y="792" width="175.2" height="19" fill="#48a9ed"/>
+<rect x="223.2" y="734.4" width="26.4" height="57.6" rx="2" fill="#3ac17e"/>
+<rect x="328.8" y="737.6" width="26.4" height="54.4" rx="2" fill="#ecc46a"/>
+<path d="M340.8 732.6 Q481.20000000000005 672 645.6 732.6" fill="none" stroke="#ecc46a" stroke-width="2" stroke-dasharray="5 4"/>
+<rect x="633.6" y="737.6" width="26.4" height="54.4" rx="2" fill="#3ac17e"/>
+<rect x="784.8" y="732.8" width="26.4" height="59.2" rx="2" fill="#3ac17e"/>
+<rect x="907.1999999999999" y="734.4" width="26.4" height="57.6" rx="2" fill="#ecc46a"/>
+<path d="M919.1999999999999 729.4 Q1034.3999999999999 672 1173.6 729.4" fill="none" stroke="#ecc46a" stroke-width="2" stroke-dasharray="5 4"/>
+<rect x="1161.6" y="734.4" width="26.4" height="57.6" rx="2" fill="#3ac17e"/>
+<rect x="739.1999999999999" y="753.6" width="24.0" height="7" rx="2" fill="#a2b9d1"/>
+<rect x="842.4" y="748.8" width="25.2" height="7" rx="2" fill="#a2b9d1"/>
+<path d="M272.79999999999995 702.3 q4 -7 8 0 q4 -7 8 0" fill="none" stroke="#ffab96" stroke-width="3"/>
+<path d="M728.8 698.85 q4 -7 8 0 q4 -7 8 0" fill="none" stroke="#ffab96" stroke-width="3"/>
+<path d="M853.6 697.7 q4 -7 8 0 q4 -7 8 0" fill="none" stroke="#ffab96" stroke-width="3"/>
+<path d="M1240.0 706.9 q4 -7 8 0 q4 -7 8 0" fill="none" stroke="#ffab96" stroke-width="3"/>
+<circle cx="175.2" cy="786" r="5" fill="#ed8b64"/>
+<circle cx="276.0" cy="786" r="5" fill="#ed8b64"/>
+<circle cx="698.4" cy="786" r="5" fill="#ed8b64"/>
+<circle cx="849.6" cy="786" r="5" fill="#ed8b64"/>
+<circle cx="1243.2" cy="786" r="5" fill="#ed8b64"/>
+<line x1="1308.0" y1="727" x2="1308.0" y2="792" stroke="white" stroke-width="3"/><path d="M1308.0 727 l22 8 l-22 8" fill="#f56e84"/>
+<text x="60" y="834" class="small">0</text><text x="660.0" y="834" class="small">2500</text><text x="1260.0" y="834" class="small">5000</text>
+<text x="50" y="856" class="label">5 · THÀNH TRÌ CUỐI</text>
+<rect x="60" y="976" width="1320" height="12" rx="3" fill="#64b78a"/>
+<rect x="376.8" y="976" width="235.2" height="19" fill="#48a9ed"/>
+<rect x="254.4" y="921.6" width="26.4" height="54.4" rx="2" fill="#3ac17e"/>
+<rect x="669.6" y="915.2" width="26.4" height="60.800000000000004" rx="2" fill="#3ac17e"/>
+<rect x="403.2" y="939.2" width="26.4" height="7" rx="2" fill="#a2b9d1"/>
+<line x1="448.8" x2="532.8" y1="926.2" y2="926.2" stroke="#d19bff" stroke-dasharray="4 4"/>
+<rect x="463.2" y="923.2" width="25.2" height="7" rx="2" fill="#d19bff"/>
+<rect x="556.8" y="937.6" width="25.2" height="7" rx="2" fill="#a2b9d1"/>
+<rect x="931.1999999999999" y="934.4" width="30.0" height="7" rx="2" fill="#a2b9d1"/>
+<rect x="1176.0" y="934.4" width="30.0" height="7" rx="2" fill="#a2b9d1"/>
+<path d="M330.4 893.2 q4 -7 8 0 q4 -7 8 0" fill="none" stroke="#ffab96" stroke-width="3"/>
+<path d="M484.0 880.55 q4 -7 8 0 q4 -7 8 0" fill="none" stroke="#ffab96" stroke-width="3"/>
+<path d="M728.8 888.6 q4 -7 8 0 q4 -7 8 0" fill="none" stroke="#ffab96" stroke-width="3"/>
+<circle cx="340.8" cy="970" r="5" fill="#ed8b64"/>
+<circle cx="631.1999999999999" cy="970" r="5" fill="#ed8b64"/>
+<circle cx="727.1999999999999" cy="970" r="5" fill="#ed8b64"/>
+<rect x="864.0" y="881" width="388.8" height="95" rx="4" fill="#f48f51" fill-opacity=".12" stroke="#f48f51" stroke-dasharray="5 4"/>
+<text x="1080.0" y="961" text-anchor="middle" font-size="19">BOSS</text>
+<line x1="1308.0" y1="911" x2="1308.0" y2="976" stroke="white" stroke-width="3"/><path d="M1308.0 911 l22 8 l-22 8" fill="#f56e84"/>
+<text x="60" y="1018" class="small">0</text><text x="660.0" y="1018" class="small">2500</text><text x="1260.0" y="1018" class="small">5000</text>
+<text x="50" y="1088" class="small">Xanh lá: ống · Vàng: dịch chuyển · Xám: nền cố định · Tím: nền di chuyển · Cam: quái/chim · Xanh dương: sông</text></svg>

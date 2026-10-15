@@ -13,3 +13,9 @@
 .externalNativeBuild
 .cxx
 local.properties
+/.gradle-home/
+/.android/
+/dist/
+/result
+**/build/
+/.kotlin/

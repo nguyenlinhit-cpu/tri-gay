@@ -33,6 +33,11 @@ class MainActivity : AppCompatActivity() {
         gameView.pause()
     }
 
+    override fun onDestroy() {
+        gameView.release()
+        super.onDestroy()
+    }
+
     // Chuyển trực tiếp sự kiện nhấn bàn phím từ Activity xuống GameView
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         if (::gameView.isInitialized && gameView.onKeyDown(keyCode, event)) {
