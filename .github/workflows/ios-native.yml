@@ -21,10 +21,11 @@ jobs:
           python3 tools/prepare_ios.py
           python3 tools/generate_xcode_project.py
           git diff --exit-code -- ios/SupperMario.xcodeproj
-          swift ios/GenerateIcon.swift
           xcodebuild -version
       - name: Test deterministic Swift game engine
         run: swift test --package-path ios/GameCore --parallel
+      - name: Generate opaque native app icon
+        run: swift ios/GenerateIcon.swift
       - name: Select and boot iPhone simulator
         run: |
           xcrun simctl list devices available --json > /tmp/ios-devices.json
